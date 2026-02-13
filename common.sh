@@ -45,6 +45,10 @@ nodejs_setup(){
 
         dnf install nodejs -y &>>$LOG_FILE
         VALIDATE $?  "installing NodeJS"
+
+        npm install &>>$LOG_FILE
+        VALIDATE $? "Install dependencies" 
+
 }
 
 app_setup(){
@@ -62,9 +66,6 @@ app_setup(){
 
         unzip /tmp/$app_name.zip &>>$LOG_FILE
         VALIDATE $? "unzip the $app_name"
-
-        npm install &>>$LOG_FILE
-        VALIDATE $? "Install dependencies" 
 
 }
 
