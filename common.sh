@@ -11,6 +11,9 @@ LOGS_FOLDER="/var/log/shell-roboshop"
 SCRIPT_NAME=$( echo $0 | cut -d "." -f1 )
 LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log"
 START_TIME=$(date +%s)
+SCRIPT_DIR=$PWD
+MONGODB_HOST=mongodb.rajamouli.online
+
 
 mkdir -p $LOGS_FOLDER
 
@@ -31,6 +34,56 @@ VALIDATE(){
         echo  -e "$2 .... $G is success $N" | tee -a $LOG_FILE
     fi
 
+}
+
+nodejs_setup(){
+         dnf module disable nodejs -y &>>$LOG_FILE
+         VALIDATE $? "disabling NodeJS"
+
+         dnf module enable nodejs:20 -y &>>$LOG_FILE
+         VALIDATE $? "enabling NodeJS"
+
+        dnf install nodejs -y &>>$LOG_FILE
+        VALIDATE $?  "installing NodeJS"
+}
+
+app_setup(){
+       mkdir -p /app
+       VALIDATE $? "Creating app directory" 
+
+       curl -o /tmp/$app_name.zip https://roboshop-artifacts.s3.amazonaws.com/$app_name-v3.zip &>>$LOG_FILE
+       VALIDATE $? "Downloading $app_name application"
+
+       cd /app 
+       VALIDATE $? "Changing the app directory" 
+
+        rm -rf /app/*
+        VALIDATE $? "Removing existing code"
+
+        unzip /tmp/$app_name.zip &>>$LOG_FILE
+        VALIDATE $? "unzip the $app_name"
+
+        npm install &>>$LOG_FILE
+        VALIDATE $? "Install dependencies" 
+
+}
+
+systemd_setup(){
+     cp $SCRIPT_DIR/$app_name.service /etc/systemd/system/$app_name.service 
+     VALIDATE $? "copy the systemctl  service"
+
+     systemctl daemon-reload
+
+     systemctl enable $app_name &>>$LOG_FILE
+     VALIDATE $? "enabling the $app_name"
+
+     systemctl start $app_name &>>$LOG_FILE
+     VALIDATE $? "starting the $app_name"
+}
+
+app_restart(){
+         systemctl restart $app_name &>>$LOG_FILE
+         VALIDATE $? "restart the $app_name service"
 }
 
 print_total_time(){
