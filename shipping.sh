@@ -1,7 +1,9 @@
 #!/bin/bash
 
 set -e
+
 source ./common.sh
+
 app_name=shipping
 
 check_root
